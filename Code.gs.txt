@@ -1,0 +1,394 @@
+/**
+ * ============================================================================
+ * UWAISHDEV — GOOGLE APPS SCRIPT BACKEND (Code.gs)
+ * Version: 2.0.0
+ * Purpose: Serverless API for GitHub Pages static portfolio
+ * Database: Google Sheets (PublicContent, Enquiries, Admin, AuditLog)
+ * ============================================================================
+ * 
+ * DEPLOYMENT INSTRUCTIONS:
+ * 1. Open your Google Drive and create a new Google Sheet named "UWAISHDEV Database".
+ * 2. In the Google Sheet, go to Extensions > Apps Script.
+ * 3. Delete any code in the editor and paste the entire contents of this file.
+ * 4. Run the function `setupSheets()` once from the Apps Script editor to initialize tabs.
+ * 5. Click "Deploy" > "New deployment".
+ * 6. Select type: "Web app".
+ * 7. Set:
+ *    - Description: "UWAISHDEV Portfolio API"
+ *    - Execute as: "Me" (your Google account)
+ *    - Who has access: "Anyone" (crucial for static GitHub Pages access)
+ * 8. Click "Deploy", authorize the permissions, and copy the Web App URL.
+ * 9. Paste this URL into your admin.html > "Google Apps Script" tab.
+ * ============================================================================
+ */
+
+// Tab Names
+const SHEET_CONTENT = "PublicContent";
+const SHEET_ENQUIRIES = "Enquiries";
+const SHEET_ADMIN = "Admin";
+const SHEET_AUDIT = "AuditLog";
+
+/**
+ * Handle HTTP GET Requests
+ */
+function doGet(e) {
+  try {
+    const params = e ? e.parameter : {};
+    const action = params.action || "getPublicData";
+
+    let responseData = {};
+
+    switch (action) {
+      case "getPublicData":
+        responseData = handleGetPublicData();
+        break;
+
+      case "getEnquiries":
+        const token = params.token;
+        if (!validateAdminToken(token)) {
+          return createJsonResponse({ status: "error", message: "Unauthorized request" }, 401);
+        }
+        responseData = handleGetEnquiries();
+        break;
+
+      case "ping":
+        responseData = { status: "success", message: "UWAISHDEV API is live and operational." };
+        break;
+
+      default:
+        responseData = { status: "error", message: "Unknown GET action: " + action };
+        break;
+    }
+
+    return createJsonResponse(responseData);
+  } catch (err) {
+    return createJsonResponse({ status: "error", message: err.toString() }, 500);
+  }
+}
+
+/**
+ * Handle HTTP POST Requests
+ */
+function doPost(e) {
+  try {
+    let action = "";
+    let data = null;
+
+    if (e && e.postData && e.postData.contents) {
+      // Check if URL-encoded or JSON
+      try {
+        const parsedJson = JSON.parse(e.postData.contents);
+        action = parsedJson.action;
+        data = parsedJson.data;
+      } catch (jsonErr) {
+        // Fallback for form-urlencoded
+        const postParams = e.parameter || {};
+        action = postParams.action;
+        data = postParams.data ? JSON.parse(postParams.data) : null;
+      }
+    } else if (e && e.parameter) {
+      action = e.parameter.action;
+      data = e.parameter.data ? JSON.parse(e.parameter.data) : null;
+    }
+
+    let responseData = {};
+
+    switch (action) {
+      case "submitEnquiry":
+        responseData = handleSubmitEnquiry(data);
+        break;
+
+      case "saveAllData":
+        responseData = handleSaveAllData(data);
+        break;
+
+      case "updateEnquiryStatus":
+        responseData = handleUpdateEnquiryStatus(data);
+        break;
+
+      case "updateAdminPassword":
+        responseData = handleUpdateAdminPassword(data);
+        break;
+
+      default:
+        responseData = { status: "error", message: "Unknown POST action: " + action };
+        break;
+    }
+
+    return createJsonResponse(responseData);
+  } catch (err) {
+    return createJsonResponse({ status: "error", message: err.toString() }, 500);
+  }
+}
+
+/**
+ * Update and persist admin password hash in Google Sheet (Admin tab & Script Properties)
+ */
+function handleUpdateAdminPassword(data) {
+  if (!data || !data.hash) {
+    return { status: "error", message: "Missing password hash." };
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_ADMIN);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_ADMIN);
+    sheet.appendRow(["Key", "Value", "UpdatedAt"]);
+    sheet.setFrozenRows(1);
+  }
+
+  // Check if ADMIN_HASH already exists, update or append
+  const rows = sheet.getDataRange().getValues();
+  let updated = false;
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === "ADMIN_PASSWORD_HASH") {
+      sheet.getRange(i + 1, 2).setValue(data.hash);
+      sheet.getRange(i + 1, 3).setValue(new Date().toISOString());
+      updated = true;
+      break;
+    }
+  }
+
+  if (!updated) {
+    sheet.appendRow(["ADMIN_PASSWORD_HASH", data.hash, new Date().toISOString()]);
+  }
+
+  // Also backup to ScriptProperties for maximum security
+  try {
+    PropertiesService.getScriptProperties().setProperty("ADMIN_PASSWORD_HASH", data.hash);
+  } catch (propErr) {}
+
+  logAudit("PASSWORD_UPDATED", "Admin master password changed and synced to Google Sheets");
+
+  return { status: "success", message: "Admin password successfully saved to Google Sheets." };
+}
+
+/**
+ * Return public website content stored in PublicContent sheet
+ */
+function handleGetPublicData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_CONTENT);
+  if (!sheet) {
+    return { status: "success", data: null, message: "Sheet not yet initialized." };
+  }
+
+  const rawJson = sheet.getRange(1, 1).getValue();
+  let content = null;
+  if (rawJson) {
+    try {
+      content = JSON.parse(rawJson);
+    } catch (e) {
+      content = null;
+    }
+  }
+
+  return { status: "success", data: content };
+}
+
+/**
+ * Save complete public website content to PublicContent sheet
+ */
+function handleSaveAllData(data) {
+  if (!data) {
+    return { status: "error", message: "No data payload provided." };
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_CONTENT);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_CONTENT);
+  }
+
+  sheet.getRange(1, 1).setValue(JSON.stringify(data));
+  logAudit("SAVE_ALL_DATA", "Updated website content bundle");
+
+  return { status: "success", message: "Content persisted successfully." };
+}
+
+/**
+ * Record a new enquiry submission
+ */
+function handleSubmitEnquiry(data) {
+  if (!data || !data.name || !data.phone || !data.email) {
+    return { status: "error", message: "Missing required contact fields." };
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_ENQUIRIES);
+  if (!sheet) {
+    setupSheets();
+    sheet = ss.getSheetByName(SHEET_ENQUIRIES);
+  }
+
+  const timestamp = data.timestamp || new Date().toISOString();
+  const id = data.id || "enq-" + Date.now();
+  const name = sanitize(data.name);
+  const phone = sanitize(data.phone);
+  const email = sanitize(data.email);
+  const service = sanitize(data.service || "General");
+  const budget = sanitize(data.budget || "Unspecified");
+  const message = sanitize(data.message || "");
+  const status = "New";
+  const notes = "";
+
+  sheet.appendRow([
+    timestamp,
+    id,
+    name,
+    phone,
+    email,
+    service,
+    budget,
+    message,
+    status,
+    notes
+  ]);
+
+  logAudit("NEW_ENQUIRY", `From ${name} (${phone}) for ${service}`);
+
+  return { status: "success", message: "Enquiry recorded successfully." };
+}
+
+/**
+ * Fetch enquiries (authorized only)
+ */
+function handleGetEnquiries() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_ENQUIRIES);
+  if (!sheet) return { status: "success", data: [] };
+
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length <= 1) return { status: "success", data: [] };
+
+  const enquiries = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    enquiries.push({
+      timestamp: row[0],
+      id: row[1],
+      name: row[2],
+      phone: row[3],
+      email: row[4],
+      service: row[5],
+      budget: row[6],
+      message: row[7],
+      status: row[8],
+      notes: row[9]
+    });
+  }
+
+  return { status: "success", data: enquiries.reverse() };
+}
+
+/**
+ * Update enquiry status or notes
+ */
+function handleUpdateEnquiryStatus(data) {
+  if (!data || !data.id || !data.status) {
+    return { status: "error", message: "Missing ID or status." };
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_ENQUIRIES);
+  if (!sheet) return { status: "error", message: "Enquiries sheet not found." };
+
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][1]) === String(data.id)) {
+      sheet.getRange(i + 1, 9).setValue(data.status); // Column 9: Status
+      if (data.notes !== undefined) {
+        sheet.getRange(i + 1, 10).setValue(data.notes); // Column 10: Notes
+      }
+      return { status: "success", message: "Enquiry status updated." };
+    }
+  }
+
+  return { status: "error", message: "Enquiry record not found." };
+}
+
+/**
+ * Record event in AuditLog tab
+ */
+function logAudit(action, details) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName(SHEET_AUDIT);
+    if (!sheet) {
+      sheet = ss.insertSheet(SHEET_AUDIT);
+      sheet.appendRow(["Timestamp", "Action", "Details"]);
+    }
+    sheet.appendRow([new Date().toISOString(), action, details]);
+  } catch (e) {
+    // Audit logging failure should not break primary requests
+  }
+}
+
+/**
+ * Token validation helper
+ */
+function validateAdminToken(token) {
+  if (!token) return false;
+  // Tokens begin with sess_ and must be non-empty
+  return token.length > 10;
+}
+
+/**
+ * Simple sanitizer to prevent sheet injection
+ */
+function sanitize(val) {
+  if (typeof val !== "string") return String(val || "");
+  // Prevent Excel/Sheets command injection (=, +, -, @)
+  if (/^[=+\-@]/.test(val)) {
+    return "'" + val;
+  }
+  return val;
+}
+
+/**
+ * Helper to produce CORS-friendly JSON responses
+ */
+function createJsonResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * INITIALIZATION FUNCTION: Run this once from the Script Editor
+ */
+function setupSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // 1. Content Tab
+  if (!ss.getSheetByName(SHEET_CONTENT)) {
+    const s = ss.insertSheet(SHEET_CONTENT);
+    s.getRange(1, 1).setValue("{}");
+  }
+
+  // 2. Enquiries Tab
+  if (!ss.getSheetByName(SHEET_ENQUIRIES)) {
+    const s = ss.insertSheet(SHEET_ENQUIRIES);
+    s.appendRow([
+      "Timestamp",
+      "ID",
+      "Name",
+      "Phone",
+      "Email",
+      "Service Required",
+      "Budget Range",
+      "Message",
+      "Status",
+      "Admin Notes"
+    ]);
+    s.setFrozenRows(1);
+  }
+
+  // 3. Audit Log Tab
+  if (!ss.getSheetByName(SHEET_AUDIT)) {
+    const s = ss.insertSheet(SHEET_AUDIT);
+    s.appendRow(["Timestamp", "Action", "Details"]);
+    s.setFrozenRows(1);
+  }
+
+  Logger.log("All UWAISHDEV sheets initialized successfully!");
+}

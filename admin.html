@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UWAISHDEV Control Center — Admin CMS</title>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Admin Stylesheet -->
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin-body">
+
+  <!-- ==================== AUTHENTICATION OVERLAY ==================== -->
+  <div id="auth-modal" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">
+          <i data-lucide="shield-check" class="icon-lg text-primary"></i>
+        </div>
+        <h1 class="auth-title">UWAISHDEV Control Center</h1>
+        <p class="auth-subtitle">Website Administration & Content Management</p>
+      </div>
+
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label for="admin-password">Admin Password</label>
+          <div class="input-icon-wrapper">
+            <i data-lucide="lock" class="input-icon"></i>
+            <input type="password" id="admin-password" required placeholder="Enter your admin password" class="form-control" autocomplete="current-password" />
+          </div>
+          <p id="first-time-hint" class="hint-text hidden">First time? Create your master admin password to initialize your CMS.</p>
+        </div>
+
+        <div id="login-alert" class="alert hidden"></div>
+
+        <button type="submit" id="login-btn" class="btn btn-primary w-full">
+          <span>Authenticate & Unlock</span>
+          <i data-lucide="arrow-right" class="icon-sm"></i>
+        </button>
+
+        <div style="margin-top: 1rem; text-align: center;">
+          <button type="button" id="btn-emergency-reset" class="link-back" style="background: none; border: none; cursor: pointer; color: #0284c7; font-size: 0.775rem;">
+            <i data-lucide="refresh-cw" class="icon-xs"></i>
+            Forgot Password? Reset to default (Uwaish@2026)
+          </button>
+        </div>
+
+        <div class="auth-footer">
+          <a href="index.html" class="link-back">
+            <i data-lucide="arrow-left" class="icon-xs"></i>
+            Return to Public Portfolio
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN DASHBOARD LAYOUT ==================== -->
+  <div id="admin-app" class="dashboard-layout hidden">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside id="admin-sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" target="_blank" class="brand-link" title="Open live portfolio in new tab">
+          <span class="brand-badge">U</span>
+          <div class="brand-info">
+            <span class="brand-title">UWAISHDEV</span>
+            <span class="brand-mode">CMS Dashboard</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        
+        <div class="nav-section-label">Core System</div>
+        <a href="#overview" class="nav-item active" data-tab="overview">
+          <i data-lucide="layout-dashboard" class="nav-icon"></i>
+          <span>Overview</span>
+        </a>
+        <a href="#general" class="nav-item" data-tab="general">
+          <i data-lucide="sliders" class="nav-icon"></i>
+          <span>General Settings</span>
+        </a>
+        <a href="#profile" class="nav-item" data-tab="profile">
+          <i data-lucide="user" class="nav-icon"></i>
+          <span>Profile & Hero</span>
+        </a>
+        <a href="#about" class="nav-item" data-tab="about">
+          <i data-lucide="file-text" class="nav-icon"></i>
+          <span>About Me</span>
+        </a>
+
+        <div class="nav-section-label">Content & Portfolio</div>
+        <a href="#projects" class="nav-item" data-tab="projects">
+          <i data-lucide="folder-git-2" class="nav-icon"></i>
+          <span>Projects Portfolio</span>
+        </a>
+        <a href="#services" class="nav-item" data-tab="services">
+          <i data-lucide="briefcase" class="nav-icon"></i>
+          <span>Services Manager</span>
+        </a>
+        <a href="#skills" class="nav-item" data-tab="skills">
+          <i data-lucide="code" class="nav-icon"></i>
+          <span>Skills Toolkit</span>
+        </a>
+        <a href="#education" class="nav-item" data-tab="education">
+          <i data-lucide="graduation-cap" class="nav-icon"></i>
+          <span>Education Timeline</span>
+        </a>
+        <a href="#experience" class="nav-item" data-tab="experience">
+          <i data-lucide="award" class="nav-icon"></i>
+          <span>Experience & Records</span>
+        </a>
+
+        <div class="nav-section-label">Communications</div>
+        <a href="#enquiries" class="nav-item" data-tab="enquiries">
+          <i data-lucide="inbox" class="nav-icon"></i>
+          <span>Enquiries Inbox</span>
+          <span id="badge-enquiries-count" class="pill-badge">0</span>
+        </a>
+        <a href="#contacts" class="nav-item" data-tab="contacts">
+          <i data-lucide="phone-call" class="nav-icon"></i>
+          <span>Contact & Phones</span>
+        </a>
+        <a href="#socials" class="nav-item" data-tab="socials">
+          <i data-lucide="share-2" class="nav-icon"></i>
+          <span>Social Channels</span>
+        </a>
+        <a href="#resume" class="nav-item" data-tab="resume">
+          <i data-lucide="file-down" class="nav-icon"></i>
+          <span>Resume & Documents</span>
+        </a>
+
+        <div class="nav-section-label">Design & Visuals</div>
+        <a href="#theme" class="nav-item" data-tab="theme">
+          <i data-lucide="palette" class="nav-icon"></i>
+          <span>Theme Studio</span>
+        </a>
+        <a href="#typography" class="nav-item" data-tab="typography">
+          <i data-lucide="type" class="nav-icon"></i>
+          <span>Typography</span>
+        </a>
+        <a href="#layout" class="nav-item" data-tab="layout">
+          <i data-lucide="grid" class="nav-icon"></i>
+          <span>Layout & Spacing</span>
+        </a>
+        <a href="#threescene" class="nav-item" data-tab="threescene">
+          <i data-lucide="box" class="nav-icon"></i>
+          <span>3D Scene System</span>
+        </a>
+        <a href="#animations" class="nav-item" data-tab="animations">
+          <i data-lucide="sparkles" class="nav-icon"></i>
+          <span>Animations</span>
+        </a>
+
+        <div class="nav-section-label">Site Architecture</div>
+        <a href="#sections" class="nav-item" data-tab="sections">
+          <i data-lucide="layers" class="nav-icon"></i>
+          <span>Page Sections</span>
+        </a>
+        <a href="#components" class="nav-item" data-tab="components">
+          <i data-lucide="component" class="nav-icon"></i>
+          <span>Cards & Components</span>
+        </a>
+        <a href="#navigation" class="nav-item" data-tab="navigation">
+          <i data-lucide="menu" class="nav-icon"></i>
+          <span>Navigation Menu</span>
+        </a>
+        <a href="#footer" class="nav-item" data-tab="footer">
+          <i data-lucide="panel-bottom" class="nav-icon"></i>
+          <span>Footer Manager</span>
+        </a>
+
+        <div class="nav-section-label">System & Storage</div>
+        <a href="#seo" class="nav-item" data-tab="seo">
+          <i data-lucide="globe" class="nav-icon"></i>
+          <span>SEO & Metadata</span>
+        </a>
+        <a href="#media" class="nav-item" data-tab="media">
+          <i data-lucide="image" class="nav-icon"></i>
+          <span>Media Library</span>
+        </a>
+        <a href="#advanced" class="nav-item" data-tab="advanced">
+          <i data-lucide="database" class="nav-icon"></i>
+          <span>Google Apps Script</span>
+        </a>
+        <a href="#security" class="nav-item" data-tab="security">
+          <i data-lucide="key-round" class="nav-icon"></i>
+          <span>Security & Password</span>
+        </a>
+        <a href="#backup" class="nav-item" data-tab="backup">
+          <i data-lucide="download-cloud" class="nav-icon"></i>
+          <span>Backup & Restore</span>
+        </a>
+
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="btn-logout" class="btn btn-outline-danger w-full btn-sm">
+          <i data-lucide="log-out" class="icon-sm"></i>
+          <span>Lock / Log Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <div class="main-wrapper">
+      
+      <!-- Top Action Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="sidebar-toggle" class="btn-icon" aria-label="Toggle Sidebar">
+            <i data-lucide="menu" class="icon-md"></i>
+          </button>
+          <div class="page-title-group">
+            <h2 id="current-view-title" class="page-title">Dashboard Overview</h2>
+            <span id="save-status-indicator" class="status-pill status-saved">Changes Saved</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <a href="index.html" target="_blank" class="btn btn-secondary btn-sm" title="Preview public site in a new tab">
+            <i data-lucide="external-link" class="icon-xs"></i>
+            <span>Preview Site</span>
+          </a>
+          <button id="btn-quick-save" class="btn btn-primary btn-sm">
+            <i data-lucide="save" class="icon-xs"></i>
+            <span>Save Changes</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dynamic Content Views Container -->
+      <main class="content-body">
+
+        <!-- 1. OVERVIEW VIEW -->
+        <section id="view-overview" class="view-panel active">
+          <div class="view-header">
+            <h3>Website Overview & Status</h3>
+            <p class="text-muted">Real-time statistics of your portfolio ecosystem.</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon bg-blue-subtle text-blue">
+                <i data-lucide="folder-git-2"></i>
+              </div>
+              <div class="stat-data">
+                <span class="stat-value" id="stat-projects-count">0</span>
+                <span class="stat-label">Projects Registered</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon bg-green-subtle text-green">
+                <i data-lucide="inbox"></i>
+              </div>
+              <div class="stat-data">
+                <span class="stat-value" id="stat-enquiries-count">0</span>
+                <span class="stat-label">Total Enquiries</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon bg-purple-subtle text-purple">
+                <i data-lucide="briefcase"></i>
+              </div>
+              <div class="stat-data">
+                <span class="stat-value" id="stat-services-count">0</span>
+                <span class="stat-label">Active Services</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon bg-amber-subtle text-amber">
+                <i data-lucide="code"></i>
+              </div>
+              <div class="stat-data">
+                <span class="stat-value" id="stat-skills-count">0</span>
+                <span class="stat-label">Configured Skills</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Navigation Cards -->
+          <div class="card mt-4">
+            <div class="card-header">
+              <h4>System Configuration Checklist</h4>
+            </div>
+            <div class="card-body">
+              <div class="checklist">
+                <div class="check-item">
+                  <i data-lucide="check-circle-2" class="text-green icon-sm"></i>
+                  <div class="check-info">
+                    <strong>UWAISHDEV Identity Configured:</strong>
+                    <span>Personal name, tagline, email, and Kareli location set.</span>
+                  </div>
+                </div>
+                <div class="check-item">
+                  <i data-lucide="check-circle-2" class="text-green icon-sm"></i>
+                  <div class="check-info">
+                    <strong>Zero-Build Static Architecture:</strong>
+                    <span>Ready for direct deployment to GitHub Pages.</span>
+                  </div>
+                </div>
+                <div class="check-item" id="check-backend-status">
+                  <i data-lucide="help-circle" class="text-amber icon-sm"></i>
+                  <div class="check-info">
+                    <strong>Google Apps Script Backend:</strong>
+                    <span id="backend-status-text">Local fallback active. Connect your Web App URL in Advanced Settings.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. GENERAL SETTINGS VIEW -->
+        <section id="view-general" class="view-panel">
+          <div class="view-header">
+            <h3>General Brand Settings</h3>
+            <p class="text-muted">Manage your primary developer brand name, location, and taglines.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group">
+                <label>Brand Name</label>
+                <input type="text" id="cfg-brandName" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Personal Name</label>
+                <input type="text" id="cfg-personalName" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Brand Handle</label>
+                <input type="text" id="cfg-brandHandle" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Professional Title</label>
+                <input type="text" id="cfg-professionalTitle" class="form-control" />
+              </div>
+              <div class="form-group span-2">
+                <label>Primary Tagline</label>
+                <input type="text" id="cfg-tagline" class="form-control" />
+              </div>
+              <div class="form-group span-2">
+                <label>Primary Location</label>
+                <input type="text" id="cfg-location" class="form-control" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. PROFILE & HERO VIEW -->
+        <section id="view-profile" class="view-panel">
+          <div class="view-header">
+            <h3>Profile & Hero Section</h3>
+            <p class="text-muted">Customize hero introductory text, profile photo frame, and resume links.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group span-2">
+                <label>Hero Introduction Copy</label>
+                <textarea id="cfg-introCopy" rows="3" class="form-control"></textarea>
+              </div>
+              <div class="form-group span-2">
+                <label>Profile Photo URL</label>
+                <input type="url" id="cfg-profilePhotoUrl" placeholder="https://example.com/photo.jpg" class="form-control" />
+                <span class="hint-text">Leave empty to display the clean terminal developer avatar badge.</span>
+              </div>
+              <div class="form-group">
+                <label>Photo Frame Style</label>
+                <select id="cfg-profileFrameStyle" class="form-control">
+                  <option value="rounded">Rounded Square (Default)</option>
+                  <option value="circular">Circular</option>
+                  <option value="minimal">Minimal Flat</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Resume Download URL</label>
+                <input type="url" id="cfg-resumeUrl" placeholder="https://drive.google.com/..." class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Resume Button Label</label>
+                <input type="text" id="cfg-resumeButtonLabel" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Display Resume Button</label>
+                <select id="cfg-resumeVisible" class="form-control">
+                  <option value="true">Visible</option>
+                  <option value="false">Hidden</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. ABOUT ME VIEW -->
+        <section id="view-about" class="view-panel">
+          <div class="view-header">
+            <h3>About Me Narrative</h3>
+            <p class="text-muted">Maintain honest, transparent biographical details and mission statements.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group span-2">
+                <label>Biography Paragraph 1 (Background & Location)</label>
+                <textarea id="cfg-about-bio1" rows="3" class="form-control"></textarea>
+              </div>
+              <div class="form-group span-2">
+                <label>Biography Paragraph 2 (Mission & Value)</label>
+                <textarea id="cfg-about-bio2" rows="3" class="form-control"></textarea>
+              </div>
+              <div class="form-group span-2">
+                <label>Biography Paragraph 3 (AI-Assisted Approach & Honesty)</label>
+                <textarea id="cfg-about-bio3" rows="3" class="form-control"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. PROJECTS PORTFOLIO VIEW -->
+        <section id="view-projects" class="view-panel">
+          <div class="view-header flex-between">
+            <div>
+              <h3>Projects Portfolio Manager</h3>
+              <p class="text-muted">Add, edit, reorder, or draft portfolio items.</p>
+            </div>
+            <button id="btn-add-project" class="btn btn-primary btn-sm">
+              <i data-lucide="plus" class="icon-xs"></i>
+              <span>Add New Project</span>
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="table-responsive">
+              <table class="data-table" id="projects-table">
+                <thead>
+                  <tr>
+                    <th>Project Name</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Live URL</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="projects-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. SERVICES MANAGER VIEW -->
+        <section id="view-services" class="view-panel">
+          <div class="view-header flex-between">
+            <div>
+              <h3>Services Manager</h3>
+              <p class="text-muted">Configure client offerings, descriptions, and CTA labels.</p>
+            </div>
+            <button id="btn-add-service" class="btn btn-primary btn-sm">
+              <i data-lucide="plus" class="icon-xs"></i>
+              <span>Add Service</span>
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Service Title</th>
+                    <th>Icon</th>
+                    <th>CTA Text</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="services-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. SKILLS TOOLKIT VIEW -->
+        <section id="view-skills" class="view-panel">
+          <div class="view-header flex-between">
+            <div>
+              <h3>Skills & Tools Toolkit</h3>
+              <p class="text-muted">Manage skills without fabricated percentages.</p>
+            </div>
+            <button id="btn-add-skill" class="btn btn-primary btn-sm">
+              <i data-lucide="plus" class="icon-xs"></i>
+              <span>Add Skill</span>
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Skill Name</th>
+                    <th>Category</th>
+                    <th>Icon</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="skills-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. EDUCATION TIMELINE VIEW -->
+        <section id="view-education" class="view-panel">
+          <div class="view-header flex-between">
+            <div>
+              <h3>Education & Vocational Timeline</h3>
+              <p class="text-muted">Transparent academic records with verifiable course statuses.</p>
+            </div>
+            <button id="btn-add-education" class="btn btn-primary btn-sm">
+              <i data-lucide="plus" class="icon-xs"></i>
+              <span>Add Record</span>
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Qualification</th>
+                    <th>Institution</th>
+                    <th>Years</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="education-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. EXPERIENCE & ACHIEVEMENTS VIEW -->
+        <section id="view-experience" class="view-panel">
+          <div class="view-header flex-between">
+            <div>
+              <h3>Experience & Verified Achievements</h3>
+              <p class="text-muted">Add verified client milestones and work history entries as they happen.</p>
+            </div>
+            <button id="btn-add-experience" class="btn btn-primary btn-sm">
+              <i data-lucide="plus" class="icon-xs"></i>
+              <span>Add Experience Record</span>
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <p class="text-muted text-sm">No fabricated employment records exist. Add verified achievements below as new client projects or engagements are completed.</p>
+              <div id="experience-list" class="empty-state mt-4">
+                <i data-lucide="award" class="icon-lg text-muted"></i>
+                <p>No custom milestones registered yet. Click "Add Experience Record" to add your first verified milestone.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10. ENQUIRIES INBOX VIEW -->
+        <section id="view-enquiries" class="view-panel">
+          <div class="view-header flex-between">
+            <div>
+              <h3>Enquiries Inbox</h3>
+              <p class="text-muted">Lead-capture messages received via website contact form.</p>
+            </div>
+            <div class="flex-gap">
+              <button id="btn-export-enquiries-csv" class="btn btn-secondary btn-sm">
+                <i data-lucide="download" class="icon-xs"></i>
+                <span>Export CSV</span>
+              </button>
+              <button id="btn-clear-enquiries" class="btn btn-outline-danger btn-sm">
+                <i data-lucide="trash-2" class="icon-xs"></i>
+                <span>Clear All</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="table-responsive">
+              <table class="data-table" id="enquiries-table">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Sender</th>
+                    <th>Phone / WhatsApp</th>
+                    <th>Service</th>
+                    <th>Budget</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="enquiries-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 11. CONTACT & PHONES VIEW -->
+        <section id="view-contacts" class="view-panel">
+          <div class="view-header">
+            <h3>Contact Channels & Phone Controls</h3>
+            <p class="text-muted">Manage your phone numbers and verified WhatsApp link generators.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group">
+                <label>Primary Phone / WhatsApp</label>
+                <input type="tel" id="cfg-primaryPhone" class="form-control" />
+                <span class="hint-text">Used to automatically generate your WhatsApp contact URL (normalized with code 91).</span>
+              </div>
+              <div class="form-group">
+                <label>Secondary Phone (Optional)</label>
+                <input type="tel" id="cfg-secondaryPhone" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Contact Email</label>
+                <input type="email" id="cfg-email" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Public Phone Visibility</label>
+                <select id="cfg-publicPhoneVisible" class="form-control">
+                  <option value="true">Display Primary Phone on Site</option>
+                  <option value="false">Hide Direct Phone (Form & Email Only)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 12. SOCIAL CHANNELS VIEW -->
+        <section id="view-socials" class="view-panel">
+          <div class="view-header flex-between">
+            <div>
+              <h3>Social Links & Channels</h3>
+              <p class="text-muted">Only configure genuine, active accounts. Unset channels remain hidden.</p>
+            </div>
+            <button id="btn-add-social" class="btn btn-primary btn-sm">
+              <i data-lucide="plus" class="icon-xs"></i>
+              <span>Add Social Link</span>
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Platform</th>
+                    <th>Display Name</th>
+                    <th>Target URL</th>
+                    <th>Visibility</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="socials-table-body">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 13. RESUME & DOCUMENTS VIEW -->
+        <section id="view-resume" class="view-panel">
+          <div class="view-header">
+            <h3>Resume & Official Documents</h3>
+            <p class="text-muted">Control your public CV link and verify download permissions.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group span-2">
+                <label>Hosted Resume File URL (Google Drive / GitHub / PDF)</label>
+                <input type="url" id="cfg-resume-url-2" class="form-control" placeholder="https://..." />
+                <span class="hint-text">If using Google Drive, ensure file sharing is set to 'Anyone with the link can view'.</span>
+              </div>
+              <div class="form-group">
+                <label>Button Display Text</label>
+                <input type="text" id="cfg-resume-label-2" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Public Visibility</label>
+                <select id="cfg-resume-visible-2" class="form-control">
+                  <option value="true">Published</option>
+                  <option value="false">Hidden</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 14. THEME STUDIO VIEW -->
+        <section id="view-theme" class="view-panel">
+          <div class="view-header flex-between">
+            <div>
+              <h3>Theme Studio</h3>
+              <p class="text-muted">Customize colors, glows, and surface styles with instant preview.</p>
+            </div>
+            <div class="flex-gap">
+              <button id="btn-reset-theme" class="btn btn-secondary btn-sm">Reset to Default</button>
+              <button id="btn-apply-theme" class="btn btn-primary btn-sm">Apply & Save</button>
+            </div>
+          </div>
+
+          <!-- Preset Theme Selector -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <label class="form-label font-bold">Theme Presets</label>
+              <div class="preset-buttons">
+                <button class="btn btn-sm btn-outline preset-btn" data-preset="cyber-neon">Futuristic Cyber Neon</button>
+                <button class="btn btn-sm btn-outline preset-btn" data-preset="midnight-sapphire">Midnight Sapphire</button>
+                <button class="btn btn-sm btn-outline preset-btn" data-preset="matrix-emerald">Matrix Emerald</button>
+                <button class="btn btn-sm btn-outline preset-btn" data-preset="obsidian-violet">Obsidian Violet</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group">
+                <label>Background Canvas</label>
+                <div class="color-picker-group">
+                  <input type="color" id="theme-bgPrimary" class="color-swatch" />
+                  <input type="text" id="theme-bgPrimary-text" class="form-control" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Secondary Background</label>
+                <div class="color-picker-group">
+                  <input type="color" id="theme-bgSecondary" class="color-swatch" />
+                  <input type="text" id="theme-bgSecondary-text" class="form-control" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Primary Accent (Cyan / Glow)</label>
+                <div class="color-picker-group">
+                  <input type="color" id="theme-accentPrimary" class="color-swatch" />
+                  <input type="text" id="theme-accentPrimary-text" class="form-control" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Secondary Accent (Pink / Magenta)</label>
+                <div class="color-picker-group">
+                  <input type="color" id="theme-accentSecondary" class="color-swatch" />
+                  <input type="text" id="theme-accentSecondary-text" class="form-control" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Primary Text Color</label>
+                <div class="color-picker-group">
+                  <input type="color" id="theme-textPrimary" class="color-swatch" />
+                  <input type="text" id="theme-textPrimary-text" class="form-control" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Secondary Text Color</label>
+                <div class="color-picker-group">
+                  <input type="color" id="theme-textSecondary" class="color-swatch" />
+                  <input type="text" id="theme-textSecondary-text" class="form-control" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Card Corner Radius</label>
+                <input type="text" id="theme-cardRadius" class="form-control" placeholder="12px" />
+              </div>
+
+              <div class="form-group">
+                <label>Button Corner Radius</label>
+                <input type="text" id="theme-btnRadius" class="form-control" placeholder="8px" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 15. TYPOGRAPHY VIEW -->
+        <section id="view-typography" class="view-panel">
+          <div class="view-header">
+            <h3>Typography Settings</h3>
+            <p class="text-muted">Control font families and readable scales.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group">
+                <label>Display / Heading Font</label>
+                <select id="cfg-fontHeading" class="form-control">
+                  <option value="'Space Grotesk', sans-serif">Space Grotesk (Default Futuristic)</option>
+                  <option value="'Inter', sans-serif">Inter (Clean Modern)</option>
+                  <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+                  <option value="'JetBrains Mono', monospace">JetBrains Mono (Developer)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Body Prose Font</label>
+                <select id="cfg-fontBody" class="form-control">
+                  <option value="'Inter', sans-serif">Inter (Default)</option>
+                  <option value="'DM Sans', sans-serif">DM Sans</option>
+                  <option value="-apple-system, BlinkMacSystemFont, sans-serif">System Native Sans</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 16. LAYOUT & SPACING VIEW -->
+        <section id="view-layout" class="view-panel">
+          <div class="view-header">
+            <h3>Layout & Spacing</h3>
+            <p class="text-muted">Adjust container constraints and viewport boundaries.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group">
+                <label>Max Container Width</label>
+                <input type="text" id="cfg-containerWidth" class="form-control" value="1200px" />
+              </div>
+              <div class="form-group">
+                <label>Section Vertical Spacing</label>
+                <input type="text" id="cfg-sectionSpacing" class="form-control" value="5rem" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 17. 3D SCENE SETTINGS VIEW -->
+        <section id="view-threescene" class="view-panel">
+          <div class="view-header">
+            <h3>Signature 3D Experience (Three.js)</h3>
+            <p class="text-muted">Fine-tune the procedural geometric core and cyber particle swarm.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group">
+                <label>3D Scene Status</label>
+                <select id="cfg-three-enabled" class="form-control">
+                  <option value="true">Enabled</option>
+                  <option value="false">Disabled (Conserve battery/CPU)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Scene Preset</label>
+                <select id="cfg-three-preset" class="form-control">
+                  <option value="cyber-core">Futuristic Cyber Core (Icosahedron & Rings)</option>
+                  <option value="particle-field">Subtle Particle Constellation</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Rotation Speed</label>
+                <input type="range" id="cfg-three-speed" min="0.2" max="3" step="0.1" value="1.0" class="form-range" />
+                <span id="cfg-three-speed-val" class="hint-text">1.0x</span>
+              </div>
+
+              <div class="form-group">
+                <label>Mouse Parallax Tilt</label>
+                <select id="cfg-three-parallax" class="form-control">
+                  <option value="true">Enabled</option>
+                  <option value="false">Disabled</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 18. ANIMATIONS VIEW -->
+        <section id="view-animations" class="view-panel">
+          <div class="view-header">
+            <h3>Animation & Motion Control</h3>
+            <p class="text-muted">Configure scroll reveal transitions and accessibility settings.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group">
+                <label>Global Motion Mode</label>
+                <select id="cfg-anim-mode" class="form-control">
+                  <option value="standard">Standard Smooth (Recommended)</option>
+                  <option value="enhanced">Enhanced Micro-Interactions</option>
+                  <option value="reduced">Reduced Motion (High Performance)</option>
+                  <option value="off">Completely Disabled</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Scroll Reveal Duration</label>
+                <input type="text" id="cfg-anim-duration" class="form-control" value="0.6s" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 19. PAGE SECTIONS VIEW -->
+        <section id="view-sections" class="view-panel">
+          <div class="view-header">
+            <h3>Page Section Manager</h3>
+            <p class="text-muted">Toggle visibility of sections on the public site.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <div class="section-toggle-list">
+                <div class="section-toggle-row">
+                  <span>Hero Section (Intro & 3D Core)</span>
+                  <span class="badge badge-success">Always Active</span>
+                </div>
+                <div class="section-toggle-row">
+                  <span>01. About Me (Bio & Approach)</span>
+                  <span class="badge badge-success">Active</span>
+                </div>
+                <div class="section-toggle-row">
+                  <span>02. Skills & Capabilities</span>
+                  <span class="badge badge-success">Active</span>
+                </div>
+                <div class="section-toggle-row">
+                  <span>03. Projects Portfolio</span>
+                  <span class="badge badge-success">Active</span>
+                </div>
+                <div class="section-toggle-row">
+                  <span>04. Services</span>
+                  <span class="badge badge-success">Active</span>
+                </div>
+                <div class="section-toggle-row">
+                  <span>05. Education & Training Timeline</span>
+                  <span class="badge badge-success">Active</span>
+                </div>
+                <div class="section-toggle-row">
+                  <span>06. Contact & Enquiry Form</span>
+                  <span class="badge badge-success">Active</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 20. CARDS & COMPONENTS VIEW -->
+        <section id="view-components" class="view-panel">
+          <div class="view-header">
+            <h3>Cards & Component Styling</h3>
+            <p class="text-muted">Global style settings for cards and buttons.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group">
+                <label>Card Elevation Shadow</label>
+                <select id="cfg-card-shadow" class="form-control">
+                  <option value="subtle">Subtle Dark Elevation (Default)</option>
+                  <option value="glow">Soft Accent Glow</option>
+                  <option value="flat">Flat Border Outline</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Card Hover Lift</label>
+                <select id="cfg-card-lift" class="form-control">
+                  <option value="lift">Smooth 4px Lift</option>
+                  <option value="none">Static (No Lift)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 21. NAVIGATION MENU VIEW -->
+        <section id="view-navigation" class="view-panel">
+          <div class="view-header">
+            <h3>Top Navigation & Menu Controls</h3>
+            <p class="text-muted">Manage the top navigation bar and CTA link.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group">
+                <label>Navbar Brand Text</label>
+                <input type="text" id="cfg-nav-brand" class="form-control" value="UWAISHDEV" />
+              </div>
+              <div class="form-group">
+                <label>Primary Nav CTA Button Text</label>
+                <input type="text" id="cfg-nav-cta" class="form-control" value="Get in Touch" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 22. SEO & METADATA VIEW -->
+        <section id="view-seo" class="view-panel">
+          <div class="view-header">
+            <h3>SEO & Social Sharing Tags</h3>
+            <p class="text-muted">Manage crawler titles, meta descriptions, and OpenGraph tags.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group span-2">
+                <label>Site Title Tag (&lt;title&gt;)</label>
+                <input type="text" id="cfg-seo-title" class="form-control" value="UWAISHDEV — Web Developer & Digital Marketer | Code • Create • Grow" />
+              </div>
+              <div class="form-group span-2">
+                <label>Meta Description</label>
+                <textarea id="cfg-seo-desc" rows="3" class="form-control">Official portfolio of Uwaish (@uwaishdev), AI-assisted Web Developer & Digital Marketer from Kareli, MP, India. Modern websites, lead-capture systems, and business solutions.</textarea>
+              </div>
+              <div class="form-group">
+                <label>Canonical Site URL</label>
+                <input type="url" id="cfg-seo-canonical" class="form-control" value="https://aicart-ai.github.io/uwaishai/" />
+              </div>
+              <div class="form-group">
+                <label>Author</label>
+                <input type="text" id="cfg-seo-author" class="form-control" value="Uwaish (@uwaishdev)" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 23. MEDIA LIBRARY VIEW -->
+        <section id="view-media" class="view-panel">
+          <div class="view-header flex-between">
+            <div>
+              <h3>Media Library</h3>
+              <p class="text-muted">Store image links for project covers and profile assets.</p>
+            </div>
+            <button id="btn-add-media" class="btn btn-primary btn-sm">
+              <i data-lucide="plus" class="icon-xs"></i>
+              <span>Register Image URL</span>
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <p class="text-sm text-muted">You can reference any hosted image (GitHub Pages repository asset, Google Drive public file, or external image link) here for easy copy-pasting.</p>
+              <div id="media-grid" class="media-grid mt-4">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 24. FOOTER VIEW -->
+        <section id="view-footer" class="view-panel">
+          <div class="view-header">
+            <h3>Footer Settings</h3>
+            <p class="text-muted">Manage copyright notices and location markers.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group span-2">
+                <label>Copyright Statement</label>
+                <input type="text" id="cfg-footer-copy" class="form-control" value="© 2026 UWAISHDEV. All rights reserved." />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 25. ADVANCED & GOOGLE APPS SCRIPT SETTINGS VIEW -->
+        <section id="view-advanced" class="view-panel">
+          <div class="view-header">
+            <h3>Google Apps Script & Backend Integration</h3>
+            <p class="text-muted">Connect your deployed Google Apps Script Web App for real-time Google Sheets enquiry synchronization.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body form-grid">
+              <div class="form-group span-2">
+                <label>Deployed Apps Script Web App URL</label>
+                <input type="url" id="cfg-backend-url" class="form-control font-mono" placeholder="https://script.google.com/macros/s/AKfycb.../exec" />
+                <span class="hint-text">Paste the Web App URL generated when deploying your <code>Code.gs</code> project.</span>
+              </div>
+              
+              <div class="form-group span-2">
+                <div class="flex-gap">
+                  <button id="btn-test-backend" class="btn btn-secondary btn-sm">
+                    <i data-lucide="activity" class="icon-xs"></i>
+                    <span>Test Connection</span>
+                  </button>
+                  <button id="btn-push-backend" class="btn btn-primary btn-sm">
+                    <i data-lucide="upload-cloud" class="icon-xs"></i>
+                    <span>Push State to Google Sheet</span>
+                  </button>
+                </div>
+                <div id="backend-test-result" class="alert mt-3 hidden"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 26. BACKUP & RESTORE VIEW -->
+        <section id="view-backup" class="view-panel">
+          <div class="view-header">
+            <h3>Backup, Restore & Reset</h3>
+            <p class="text-muted">Export your entire portfolio state as JSON, or import a previously saved backup.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <div class="action-columns">
+                <div class="action-box">
+                  <h4>Export Website Backup</h4>
+                  <p class="text-sm text-muted mb-3">Download a complete, valid JSON copy of all your custom projects, services, themes, and settings.</p>
+                  <button id="btn-export-backup" class="btn btn-secondary btn-sm">
+                    <i data-lucide="download" class="icon-xs"></i>
+                    <span>Download JSON Backup</span>
+                  </button>
+                </div>
+
+                <div class="action-box">
+                  <h4>Restore from JSON File</h4>
+                  <p class="text-sm text-muted mb-3">Upload a JSON backup file to overwrite and restore your website configuration.</p>
+                  <input type="file" id="file-restore-input" accept=".json" class="hidden" />
+                  <button id="btn-trigger-restore" class="btn btn-secondary btn-sm">
+                    <i data-lucide="upload" class="icon-xs"></i>
+                    <span>Select Backup File...</span>
+                  </button>
+                </div>
+
+                <div class="action-box danger-box">
+                  <h4 class="text-danger">Reset to Defaults</h4>
+                  <p class="text-sm text-muted mb-3">Reset all settings, themes, and records back to initial UWAISHDEV defaults.</p>
+                  <button id="btn-reset-defaults" class="btn btn-outline-danger btn-sm">
+                    <i data-lucide="alert-triangle" class="icon-xs"></i>
+                    <span>Reset All Data</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 27. SECURITY & PASSWORD MANAGER VIEW -->
+        <section id="view-security" class="view-panel">
+          <div class="view-header">
+            <h3>Security & Master Password</h3>
+            <p class="text-muted">Change your admin CMS master password. It will be hashed using SHA-256 and synced to your Google Sheets database.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <form id="password-change-form" style="max-width: 440px;" class="space-y-4">
+                <div class="form-group mb-3">
+                  <label for="pwd-new">New Master Password</label>
+                  <input type="password" id="pwd-new" required minlength="6" placeholder="Enter new password (min 6 characters)" class="form-control" />
+                  <span class="hint-text">Choose a secure password you will easily remember.</span>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label for="pwd-confirm">Confirm New Password</label>
+                  <input type="password" id="pwd-confirm" required minlength="6" placeholder="Re-enter new password" class="form-control" />
+                </div>
+
+                <div id="pwd-change-status" class="alert hidden"></div>
+
+                <button type="submit" id="btn-save-new-pwd" class="btn btn-primary btn-sm">
+                  <i data-lucide="shield-check" class="icon-xs"></i>
+                  <span>Save Password & Sync to Google Sheets</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Universal Modal for Adding/Editing Items -->
+  <div id="item-modal" class="modal-overlay hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h4 id="item-modal-title">Item Editor</h4>
+        <button id="item-modal-close" class="btn-icon">
+          <i data-lucide="x" class="icon-sm"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="item-modal-body">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button id="item-modal-cancel" class="btn btn-secondary btn-sm">Cancel</button>
+        <button id="item-modal-save" class="btn btn-primary btn-sm">Save Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Controller Script -->
+  <script src="admin.js"></script>
+</body>
+</html>
